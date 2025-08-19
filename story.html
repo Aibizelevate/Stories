@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Little Elephant's Journey</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Lilita+One&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0fdf4;
+            color: #166534;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background-color: #dcfce7;
+            border-radius: 2rem;
+            padding: 2rem;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            font-family: 'Lilita One', cursive;
+        }
+        .story-page {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            align-items: center;
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            background-color: #ecfdf5;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+        .story-image {
+            width: 100%;
+            max-width: 600px;
+            height: auto;
+            border-radius: 1rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .loading {
+            text-align: center;
+            font-size: 1.25rem;
+            color: #166534;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-4xl sm:text-5xl font-bold text-center mb-6">Elara's Big Splash</h1>
+        <div id="storybook-content" class="flex flex-col gap-8">
+            <div class="loading">
+                <p>Creating your storybook...</p>
+                <div class="mt-4 animate-pulse">
+                    <svg class="h-12 w-12 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const storyData = [
+            {
+                text: "Elara was a little elephant with big, floppy ears and a trunk that wiggled with excitement. She lived with her family in a sunny savanna, where the grass was green and the sky was a brilliant blue.",
+                imagePrompt: "A cute baby elephant with big ears and a wiggling trunk, standing in a vibrant green savanna under a bright blue sky, children's storybook illustration style, joyful and sunny"
+            },
+            {
+                text: "One morning, she heard a sound she had never heard before—a gentle trickle. Following the sound, she found a small stream, sparkling like a ribbon of silver.",
+                imagePrompt: "A cute baby elephant looking curiously at a small, sparkling stream in a savanna, with bright green grass and a few trees, children's storybook illustration style"
+            },
+            {
+                text: "Elara dipped her trunk into the cool water. 'Splash!' A little drop of water landed on her nose. 'This feels so good!' she thought, and she took a big, happy sip.",
+                imagePrompt: "A cute baby elephant happily drinking water from a stream with her trunk, splashing a little, bright and cheerful children's storybook illustration"
+            },
+            {
+                text: "With a great wiggle, she splashed and played in the stream, her trunk spraying water high into the air. She made her own little rainbow in the light of the sun.",
+                imagePrompt: "A cute baby elephant joyfully splashing in a stream, spraying water from her trunk, with a small rainbow forming in the spray, children's storybook illustration style, dynamic and happy"
+            },
+            {
+                text: "When she was tired of splashing, she lay down in the mud near the stream. It was cool and soft. She rolled around until she was covered from head to toe in muddy goo. 'The perfect mud bath!' she giggled.",
+                imagePrompt: "A cute baby elephant happily covered in mud, lying down next to a stream, looking joyful, in a children's storybook illustration style"
+            },
+            {
+                text: "Covered in mud and tired from a day of play, Elara trotted back to her family. Her mother gave her a gentle nudge with her own trunk, as if to say, 'You've had a wonderful day, my little one.'",
+                imagePrompt: "A muddy, cute baby elephant trotting back towards a large, loving mother elephant, children's storybook illustration style, warm and heartwarming scene"
+            }
+        ];
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const storybookContent = document.getElementById('storybook-content');
+        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=`;
+        const API_KEY = ""; // Canvas will automatically provide the API key
+
+        // Function to convert a base64 string to a blob
+        const base64ToBlob = (base64) => {
+            const byteCharacters = atob(base64);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            return new Blob([byteArray], { type: 'image/png' });
+        };
+
+        const createStoryPage = async (pageData) => {
+            const pageDiv = document.createElement('div');
+            pageDiv.className = 'story-page';
+
+            const textP = document.createElement('p');
+            textP.className = 'text-base sm:text-lg text-gray-700 leading-relaxed';
+            textP.textContent = pageData.text;
+
+            const img = document.createElement('img');
+            img.className = 'story-image';
+            img.src = "https://placehold.co/600x400/a7f3d0/166534?text=Loading+Image...";
+            img.alt = pageData.imagePrompt;
+
+            pageDiv.appendChild(img);
+            pageDiv.appendChild(textP);
+
+            storybookContent.appendChild(pageDiv);
+
+            // Generate image and replace placeholder
+            try {
+                const payload = {
+                    instances: { prompt: pageData.imagePrompt },
+                    parameters: { "sampleCount": 1 }
+                };
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                const base64Data = result?.predictions?.[0]?.bytesBase64Encoded;
+
+                if (base64Data) {
+                    img.src = `data:image/png;base64,${base64Data}`;
+                } else {
+                    console.error("No base64 image data found in the response.");
+                    img.src = "https://placehold.co/600x400/fecaca/991b1b?text=Image+Failed+to+Load";
+                }
+            } catch (error) {
+                console.error("Error generating image:", error);
+                img.src = "https://placehold.co/600x400/fecaca/991b1b?text=Image+Failed+to+Load";
+            }
+        };
+
+        const generateStorybook = async () => {
+            const loadingDiv = storybookContent.querySelector('.loading');
+            if (loadingDiv) {
+                loadingDiv.remove();
+            }
+
+            for (const page of storyData) {
+                await createStoryPage(page);
+            }
+        };
+
+        window.onload = function() {
+            generateStorybook();
+        };
+    </script>
+</body>
+</html>
